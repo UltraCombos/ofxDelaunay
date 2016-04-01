@@ -1,4 +1,5 @@
 #include "ofApp.h"
+#include "voxelize.h"
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -46,7 +47,7 @@ void ofApp::setup(){
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
 		gSettings.setName("Settings");
-		gSettings.add(gPercentage.set("Percentage", 2.0f, 0.1f, 100.0f));
+		gSettings.add(gPercentage.set("Percentage", 1.0f, 0.1f, 10.0f));
 		gSettings.add(gNumParticles.set("NumParticles", 0));
 		gSettings.add(gCPUGPU.set("CPU / GPU", false));
         
@@ -111,6 +112,7 @@ void ofApp::update(){
 	
 	float inc = 100.0f / gPercentage;
 	auto& mesh = mModel->getMesh(0);
+	ofVec3f vsmin, vsmax;
 	mParticles.clear();
 	for (float k = 0.0f; k < mesh.getNumVertices(); k += inc)
 	{
@@ -124,6 +126,16 @@ void ofApp::update(){
 		//p.color = ofFloatColor(1);
 		p.normal = mesh.getNormal(i);
 		mParticles.emplace_back(p);
+		
+		vsmin = mModel->getSceneMin();
+		vsmax = mModel->getSceneMax();
+
+		vsmin.x = MIN(vsmin.x, p.pos.x);
+		vsmin.y = MIN(vsmin.y, p.pos.y);
+		vsmin.z = MIN(vsmin.z, p.pos.z);
+		vsmax.x = MAX(vsmax.x, p.pos.x);
+		vsmax.y = MAX(vsmax.y, p.pos.y);
+		vsmax.z = MAX(vsmax.z, p.pos.z);
 	}
 	particleBuffer.updateData(mParticles);
 	gNumParticles = mParticles.size();
@@ -158,6 +170,17 @@ void ofApp::update(){
 
 	cout << mVbo->getNumVertices() << " : " << mParticles.size() << " : " << num_indices << endl;
 #endif
+	int dim = 1 << 4;
+	uint32_t* volume = new uint32_t[dim * dim * dim];
+	if (true)
+	{
+		std::vector<ofVec3f> vertices;
+		for (auto&p : mParticles)
+			vertices.push_back(p.pos);
+
+		Voxelize(&vertices[0].x, vertices.size(), &mIndices[0], mIndices.size(), dim, dim, dim, volume, vsmin, vsmax);
+	}
+	
 
 	ofEnableDepthTest();
 	ofPushStyle();
@@ -179,16 +202,48 @@ void ofApp::update(){
 	mCamera->begin();
 
 	ofPushMatrix();
-	ofRotateZ(90);
-	ofRotateX(180);
+	//ofRotateZ(90);
+	//ofRotateX(180);
 #if 1
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 	ofFill();
 	mVbo->drawElements(GL_TRIANGLES, num_indices);
-
+	
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	ofNoFill();
 	mVbo->drawElements(GL_TRIANGLES, num_indices);
+
+	ofVec3f box_size = vsmax - vsmin;
+	ofDrawBox(vsmin, box_size.x, box_size.y, box_size.z);
+
+	//ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+	//ofEnableDepthTest();
+	//float voxelSize = 5.0f;
+	//vsmin *= 0.03f;
+	//vsmax *= 0.03f;
+	//ofVec3f voxelScale = vsmax - vsmin;
+	//cout << voxelScale << endl;
+	//for (int x = 0; x < dim; x++)
+	//{
+	//	for (int y = 0; y < dim; y++)
+	//	{
+	//		for (int z = 0; z < dim; z++)
+	//		{
+	//			int idx = z * dim * dim + y * dim + x;
+	//			if (volume[idx] > 0)
+	//			{
+	//				ofFill();
+	//				ofDrawBox(ofVec3f(x, y, z) * voxelScale, voxelSize);
+	//			}
+	//			else if (volume[idx] == 0)
+	//			{
+	//				ofNoFill();
+	//				//ofDrawBox(ofVec3f(x, y, z) * voxelSize, voxelSize * 0.5f);
+	//			}
+	//		}
+	//	}
+	//}
+	//ofDisableDepthTest();
 #else
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	//glPointSize(3.0f);

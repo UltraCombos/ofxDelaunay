@@ -49,6 +49,12 @@
     <ClCompile Include="..\..\..\addons\ofxDelaunay\libs\Delaunay\src\Delaunay.cpp">
       <Filter>addons\ofxDelaunay\libs\Delaunay\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\voxelize.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\aabbtree.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -241,6 +247,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxDelaunay\libs\Delaunay\src\Delaunay.h">
       <Filter>addons\ofxDelaunay\libs\Delaunay\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\voxelize.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\aabbtree.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\maths.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
