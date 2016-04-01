@@ -29,7 +29,7 @@ void ofApp::setup(){
     {
         ofFbo::Settings s;
         s.width = s.height = FBO_SIZE;
-		s.numSamples = ofFbo::maxSamples();
+		//s.numSamples = ofFbo::maxSamples();
         s.useDepth = true;
         s.colorFormats.emplace_back(GL_RGBA);
         
@@ -132,13 +132,6 @@ void ofApp::update(){
 		
 		vsmin = mModel->getSceneMin();
 		vsmax = mModel->getSceneMax();
-
-		//vsmin.x = MIN(vsmin.x, p.pos.x);
-		//vsmin.y = MIN(vsmin.y, p.pos.y);
-		//vsmin.z = MIN(vsmin.z, p.pos.z);
-		//vsmax.x = MAX(vsmax.x, p.pos.x);
-		//vsmax.y = MAX(vsmax.y, p.pos.y);
-		//vsmax.z = MAX(vsmax.z, p.pos.z);
 	}
 	//cout << vsmin << endl;
 	//cout << vsmax << endl;
@@ -175,11 +168,11 @@ void ofApp::update(){
 
 	cout << mVbo->getNumVertices() << " : " << mParticles.size() << " : " << num_indices << endl;
 #endif
-	float dim_size = 15.0f;
+	float dim_spacing = 15.0f;
 	ofVec3f vs_size = vsmax - vsmin;
-	int dim_x = vs_size.x / dim_size;
-	int dim_y = vs_size.y / dim_size;
-	int dim_z = vs_size.z / dim_size;
+	int dim_x = vs_size.x / dim_spacing;
+	int dim_y = vs_size.y / dim_spacing;
+	int dim_z = vs_size.z / dim_spacing;
 	uint32_t* volume = new uint32_t[dim_x * dim_y * dim_z];
 	float* sdf = new float[dim_x * dim_y * dim_z];
 	if (true)
@@ -229,7 +222,7 @@ void ofApp::update(){
 		ofFill();
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 		ofEnableDepthTest();
-		float voxelSize = dim_size * 0.25f;
+		float voxelSize = dim_spacing * 0.25f;
 		ofVec3f voxelScale = (vsmax - vsmin) / ofVec3f(dim_x, dim_y, dim_z);
 		for (int x = 0; x < dim_x; x++)
 		{
