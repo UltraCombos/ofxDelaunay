@@ -169,10 +169,10 @@ void ofApp::update(){
 	cout << mVbo->getNumVertices() << " : " << mParticles.size() << " : " << num_indices << endl;
 #endif
 	float dim_spacing = 15.0f;
-	ofVec3f vs_size = vsmax - vsmin;
-	int dim_x = vs_size.x / dim_spacing;
-	int dim_y = vs_size.y / dim_spacing;
-	int dim_z = vs_size.z / dim_spacing;
+	ofVec3f dim_size = vsmax - vsmin;
+	int dim_x = dim_size.x / dim_spacing;
+	int dim_y = dim_size.y / dim_spacing;
+	int dim_z = dim_size.z / dim_spacing;
 	uint32_t* volume = new uint32_t[dim_x * dim_y * dim_z];
 	float* sdf = new float[dim_x * dim_y * dim_z];
 	if (true)
