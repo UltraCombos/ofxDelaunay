@@ -46,7 +46,8 @@ void ofApp::setup(){
         mUniforms.add(uElapsedTime.set("uElapsedTime", ofGetElapsedTimef()));
 
 		gSettings.setName("Settings");
-		gSettings.add(gPercentage.set("Percentage", 2.0f, 0.1f, 2.0f));
+		gSettings.add(gPercentage.set("Percentage", 2.0f, 0.1f, 100.0f));
+		gSettings.add(gNumParticles.set("NumParticles", 0));
 		gSettings.add(gCPUGPU.set("CPU / GPU", false));
         
         mGui = shared_ptr<ofxGuiGroup>(new ofxGuiGroup);
@@ -125,6 +126,8 @@ void ofApp::update(){
 		mParticles.emplace_back(p);
 	}
 	particleBuffer.updateData(mParticles);
+	gNumParticles = mParticles.size();
+#if 1
 	size_t num_indices = 0;
 
 	if (!gCPUGPU)
@@ -152,9 +155,9 @@ void ofApp::update(){
 		num_indices = atomic[0];
 		atomicCounter.unmap();
 	}
-	
 
 	cout << mVbo->getNumVertices() << " : " << mParticles.size() << " : " << num_indices << endl;
+#endif
 
 	ofEnableDepthTest();
 	ofPushStyle();
@@ -178,7 +181,7 @@ void ofApp::update(){
 	ofPushMatrix();
 	ofRotateZ(90);
 	ofRotateX(180);
-
+#if 1
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 	ofFill();
 	mVbo->drawElements(GL_TRIANGLES, num_indices);
@@ -186,7 +189,12 @@ void ofApp::update(){
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	ofNoFill();
 	mVbo->drawElements(GL_TRIANGLES, num_indices);
-
+#else
+	ofEnableBlendMode(OF_BLENDMODE_ADD);
+	//glPointSize(3.0f);
+	mVbo->draw(GL_POINTS, 0, mParticles.size());
+	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+#endif
 	ofPopMatrix();
 
 	mCamera->end();

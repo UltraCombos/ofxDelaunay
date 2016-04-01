@@ -38,7 +38,7 @@ private:
 	enum {
 		WIDTH = 1280,
 		HEIGHT = 720,
-        FBO_SIZE = 1024
+        FBO_SIZE = 1920
 	};
 	
 	bool bDebugVisible = true;
@@ -49,6 +49,7 @@ private:
 
 	ofParameterGroup gSettings;
 	ofParameter<float> gPercentage;
+	ofParameter<int> gNumParticles;
 	ofParameter<bool> gCPUGPU;
 	
 	std::shared_ptr<ofFbo> mFbo;
