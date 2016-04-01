@@ -55,6 +55,9 @@
     <ClCompile Include="src\aabbtree.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\sdf.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -255,6 +258,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\maths.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sdf.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

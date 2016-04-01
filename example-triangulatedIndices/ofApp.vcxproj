@@ -200,6 +200,7 @@
     <ClCompile Include="src\aabbtree.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
+    <ClCompile Include="src\sdf.cpp" />
     <ClCompile Include="src\voxelize.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +254,7 @@
     <ClInclude Include="src\aabbtree.h" />
     <ClInclude Include="src\maths.h" />
     <ClInclude Include="src\ofApp.h" />
+    <ClInclude Include="src\sdf.h" />
     <ClInclude Include="src\voxelize.h" />
   </ItemGroup>
   <ItemGroup>

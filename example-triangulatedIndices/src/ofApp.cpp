@@ -1,5 +1,6 @@
 #include "ofApp.h"
 #include "voxelize.h"
+#include "sdf.h"
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -12,7 +13,8 @@ void ofApp::setup(){
 	auto loadModel = [&]()
 	{
 		mModel = shared_ptr<ofxAssimpModelLoader>(new ofxAssimpModelLoader);
-		mModel->loadModel("20160224.ply");
+		//mModel->loadModel("20160224.ply");
+		mModel->loadModel("teapot.obj");
 
 		auto& mesh = mModel->getMesh(0);
 		cout << "Vertices: " << mesh.getNumVertices() << endl; // 207582
@@ -37,7 +39,7 @@ void ofApp::setup(){
 
 	{
 		mCamera = shared_ptr<ofEasyCam>(new ofEasyCam);
-		mCamera->setupPerspective(true, 45, 1, 1500);
+		mCamera->setupPerspective(false, 45, 1, 1500);
 		mCamera->setAspectRatio(1.0f);
 		mCamera->setDistance(750);
 	}
@@ -65,7 +67,7 @@ void ofApp::setup(){
 			Particle p;
 			p.pos = mesh.getVertex(i);
 			p.pos.w = 1.0f;
-			p.color = mesh.getColor(i);
+			//p.color = mesh.getColor(i);
 			p.normal = mesh.getNormal(i);
 			mParticles.emplace_back(p);
 		}
@@ -114,13 +116,14 @@ void ofApp::update(){
 	auto& mesh = mModel->getMesh(0);
 	ofVec3f vsmin, vsmax;
 	mParticles.clear();
+	inc = 1.0f;
 	for (float k = 0.0f; k < mesh.getNumVertices(); k += inc)
 	{
 		size_t i = k;
 		Particle p;
 		p.pos = mesh.getVertex(i);
 		p.pos.w = 1.0f;
-		p.color = mesh.getColor(i);
+		//p.color = mesh.getColor(i);
 		//float hue = k / mesh.getNumVertices();
 		//p.color = ofFloatColor::fromHsb(hue, 0.7, 0.9);
 		//p.color = ofFloatColor(1);
@@ -130,18 +133,20 @@ void ofApp::update(){
 		vsmin = mModel->getSceneMin();
 		vsmax = mModel->getSceneMax();
 
-		vsmin.x = MIN(vsmin.x, p.pos.x);
-		vsmin.y = MIN(vsmin.y, p.pos.y);
-		vsmin.z = MIN(vsmin.z, p.pos.z);
-		vsmax.x = MAX(vsmax.x, p.pos.x);
-		vsmax.y = MAX(vsmax.y, p.pos.y);
-		vsmax.z = MAX(vsmax.z, p.pos.z);
+		//vsmin.x = MIN(vsmin.x, p.pos.x);
+		//vsmin.y = MIN(vsmin.y, p.pos.y);
+		//vsmin.z = MIN(vsmin.z, p.pos.z);
+		//vsmax.x = MAX(vsmax.x, p.pos.x);
+		//vsmax.y = MAX(vsmax.y, p.pos.y);
+		//vsmax.z = MAX(vsmax.z, p.pos.z);
 	}
+	//cout << vsmin << endl;
+	//cout << vsmax << endl;
 	particleBuffer.updateData(mParticles);
 	gNumParticles = mParticles.size();
-#if 1
-	size_t num_indices = 0;
 
+	size_t num_indices = mIndices.size();
+#if 0
 	if (!gCPUGPU)
 	{
 		triangulation->reset();
@@ -170,15 +175,21 @@ void ofApp::update(){
 
 	cout << mVbo->getNumVertices() << " : " << mParticles.size() << " : " << num_indices << endl;
 #endif
-	int dim = 1 << 4;
-	uint32_t* volume = new uint32_t[dim * dim * dim];
+	float dim_size = 15.0f;
+	ofVec3f vs_size = vsmax - vsmin;
+	int dim_x = vs_size.x / dim_size;
+	int dim_y = vs_size.y / dim_size;
+	int dim_z = vs_size.z / dim_size;
+	uint32_t* volume = new uint32_t[dim_x * dim_y * dim_z];
+	float* sdf = new float[dim_x * dim_y * dim_z];
 	if (true)
 	{
 		std::vector<ofVec3f> vertices;
 		for (auto&p : mParticles)
 			vertices.push_back(p.pos);
 
-		Voxelize(&vertices[0].x, vertices.size(), &mIndices[0], mIndices.size(), dim, dim, dim, volume, vsmin, vsmax);
+		Voxelize(&vertices[0].x, vertices.size(), &mIndices[0], mIndices.size(), dim_x, dim_y, dim_z, volume, vsmin, vsmax);
+		MakeSDF(volume, dim_x, dim_y, dim_z, sdf);
 	}
 	
 
@@ -188,16 +199,11 @@ void ofApp::update(){
 
 	mFbo->begin();
 	ofClear(0);
-    if (mShader)
-    {
-        mShader->begin();
-        mShader->setUniforms(mUniforms);
-    }
+    mShader->begin();
+    mShader->setUniforms(mUniforms);
 	
-    if (mShader)
-    {
-        mShader->end();
-    }
+   
+    mShader->end();
 
 	mCamera->begin();
 
@@ -205,45 +211,49 @@ void ofApp::update(){
 	//ofRotateZ(90);
 	//ofRotateX(180);
 #if 1
-	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-	ofFill();
-	mVbo->drawElements(GL_TRIANGLES, num_indices);
+	//ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+	//ofFill();
+	//mVbo->drawElements(GL_TRIANGLES, num_indices);
 	
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	ofNoFill();
 	mVbo->drawElements(GL_TRIANGLES, num_indices);
 
+	ofNoFill();
 	ofVec3f box_size = vsmax - vsmin;
-	ofDrawBox(vsmin, box_size.x, box_size.y, box_size.z);
+	ofVec3f box_pos = (vsmin + vsmax) * 0.5f;
+	ofDrawBox(box_pos, box_size.x, box_size.y, box_size.z);
 
-	//ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-	//ofEnableDepthTest();
-	//float voxelSize = 5.0f;
-	//vsmin *= 0.03f;
-	//vsmax *= 0.03f;
-	//ofVec3f voxelScale = vsmax - vsmin;
-	//cout << voxelScale << endl;
-	//for (int x = 0; x < dim; x++)
-	//{
-	//	for (int y = 0; y < dim; y++)
-	//	{
-	//		for (int z = 0; z < dim; z++)
-	//		{
-	//			int idx = z * dim * dim + y * dim + x;
-	//			if (volume[idx] > 0)
-	//			{
-	//				ofFill();
-	//				ofDrawBox(ofVec3f(x, y, z) * voxelScale, voxelSize);
-	//			}
-	//			else if (volume[idx] == 0)
-	//			{
-	//				ofNoFill();
-	//				//ofDrawBox(ofVec3f(x, y, z) * voxelSize, voxelSize * 0.5f);
-	//			}
-	//		}
-	//	}
-	//}
-	//ofDisableDepthTest();
+	if (true)
+	{
+		ofFill();
+		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+		ofEnableDepthTest();
+		float voxelSize = dim_size * 0.25f;
+		ofVec3f voxelScale = (vsmax - vsmin) / ofVec3f(dim_x, dim_y, dim_z);
+		for (int x = 0; x < dim_x; x++)
+		{
+			for (int y = 0; y < dim_y; y++)
+			{
+				for (int z = 0; z < dim_z; z++)
+				{
+					ofVec3f pos = vsmin + (ofVec3f(x, y, z) + 0.5f) * voxelScale;
+					int idx = z * dim_x * dim_y + y * dim_x + x;
+					if (volume[idx] > 0)
+					{
+						ofSetColor(ofFloatColor::fromHsb(-sdf[idx], 0.8f, 0.6f));
+						ofDrawBox(pos, voxelSize);
+					}
+					else if (volume[idx] == 0)
+					{
+						ofSetColor(ofFloatColor::fromHsb(sdf[idx], 1.0f, 0.2f));
+						ofDrawBox(pos, voxelSize * 0.5f);
+					}
+				}
+			}
+		}
+		ofDisableDepthTest();
+	}
 #else
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	//glPointSize(3.0f);

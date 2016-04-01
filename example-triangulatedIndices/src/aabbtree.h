@@ -26,7 +26,6 @@
 // Copyright (c) 2013-2015 NVIDIA Corporation. All rights reserved.
 #pragma once
 
-#include "ofMain.h"
 #include "maths.h"
 
 class AABBTree
